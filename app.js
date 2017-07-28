@@ -1,36 +1,51 @@
 const express = require('express');
 const mustacheExpress = require('mustache-express');
-const bodyParser = require('body-parser');
-const expressValidator = require('express-Validator');
+const bodyParser = require('body-parser')
+const expressValidator = require('express-validator')
+let todos = [];
+
 
 var app = express();
-const todos = [ "Wash the car" ];
 
+//configure mustache with express
 app.engine('mustache', mustacheExpress());
 app.set('views', './views');
 app.set('view engine', 'mustache');
 
+//Allows public folder to be served statically to browsers
 app.use(express.static('public'));
-app.use(expressValidator());
 
+//configure Body Parser
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 
-app.get("/", function (req, res) {
-  res.render('todo_list', { todos: todos });
+app.get('/', function(request, response) {
+  response.render('todos', {
+    todos: todos
+  });
 });
 
-app.post("/", function (req, res) {
-  todos.push(req.body.todo);
-  res.redirect('/');
+app.post('/', function(request, response) {
+  let id = parseInt(Math.random() * 1000);
+  newTodoObject = {
+    text: request.body.newTodo,
+    id: id
+  }
+  todos.push(newTodoObject);
+  response.redirect('/');
+});
+
+app.post('/mark-complete/:id', function(request, response) {
+  let markComplete = parseInt(request.params.id);
+  let completedTodo = todos.find(function(todo) {
+    return todo.id === markComplete
+  });
+  completedTodo.complete = true;
+  response.redirect('/');
 })
 
-app.get('/', function(req, res) {
-  res.render('todo_list');
-});
-app.post('/', function(req, res) {
-   res.render('todo_list')
-});
 app.listen(3000, function() {
-  console.log('Server has Started');
+  console.log('I\'m Alive');
 });
